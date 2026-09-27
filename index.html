@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FilaTint — Paint Multi-Color Filament Onto Your 3MF Projects</title>
+<meta name="description" content="FilaTint is an iOS/iPadOS app for painting multi-color filament regions onto Bambu Studio 3MF projects, then exporting a clean 3MF back — every other byte untouched.">
+<meta property="og:title" content="FilaTint — Paint your prints. Right on the glass.">
+<meta property="og:description" content="Multi-color painting for Bambu Studio 3MF projects, on iPhone and iPad. Brush or Smart Fill with your real filaments, then export a 3MF that opens straight back in the slicer.">
+<meta property="og:image" content="https://filatint.townsville.cc/assets/app-icon.png">
+<link rel="icon" type="image/png" href="assets/app-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Karla:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  /* Tokens, reset, base type and focus live in styles.css. */
+  main { max-width: 1120px; margin: 0 auto; }
+  .wrap { padding: 0 24px; }
+  .mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
+
+  /* ---- Hero: dark panel ---- */
+  .hero {
+    background: var(--panel-bg); color: var(--panel-text);
+    border-radius: 0 0 32px 32px;
+    --focus-ring: var(--panel-accent);
+  }
+  .hero-inner {
+    max-width: 1120px; margin: 0 auto; padding: 40px 24px 64px;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+    gap: 48px; align-items: center;
+  }
+  .brand-row { display: flex; align-items: center; gap: 16px; }
+  .brand-row img { width: 64px; height: 64px; border-radius: 15px; box-shadow: 0 8px 24px rgba(0,0,0,.4); }
+  .brand-row span { font-family: "Bricolage Grotesque"; font-weight: 800; font-size: 30px; letter-spacing: -.01em; }
+
+  .hero-copy h1 { font-size: clamp(38px, 5.4vw, 60px); font-weight: 800; line-height: 1.04; letter-spacing: -.015em; margin-top: 32px; }
+  .hero-copy .tagline { color: var(--panel-accent); font-family: "Karla"; font-weight: 700; font-size: clamp(17px, 2.4vw, 21px); margin-top: 14px; }
+  .hero-copy p.sub { color: var(--panel-sub); font-size: 17px; line-height: 1.6; margin-top: 16px; max-width: 480px; }
+
+  .badge-row { margin-top: 30px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  .pill-soon {
+    display: inline-flex; align-items: center; gap: 8px; padding: 14px 22px; border-radius: 999px;
+    background: var(--panel-text); color: var(--panel-bg); font-weight: 700; font-size: 15px;
+  }
+  .pill-soon .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex: none; }
+  .pill-dark {
+    display: inline-flex; align-items: center; padding: 8px 18px; border-radius: 999px; font-size: 14px; font-weight: 600;
+    background: rgba(255,255,255,.06); border: 1.5px solid rgba(255,255,255,.14); color: var(--panel-sub);
+  }
+
+  /* ---- Palette card demo ---- */
+  .palette-card {
+    max-width: 420px; margin: 0 auto; background: var(--card-alt); color: var(--ink);
+    border-radius: 28px; padding: 22px;
+    box-shadow: 0 40px 80px rgba(0,0,0,.45), 0 4px 16px rgba(0,0,0,.3);
+    display: flex; flex-direction: column; gap: 18px;
+  }
+  .palette-header { display: flex; justify-content: space-between; align-items: baseline; }
+  .palette-header .part { font-weight: 700; font-size: 15px; }
+  .palette-header .selected-name { font-family: "JetBrains Mono"; font-weight: 500; font-size: 12px; color: var(--muted); }
+
+  .segmented { display: grid; grid-template-columns: 1fr 1fr; background: var(--control-bg); border-radius: 10px; padding: 3px; }
+  .segmented button {
+    font-family: "Karla"; font-weight: 600; font-size: 14px; padding: 9px; border-radius: 8px;
+    border: none; background: transparent; color: var(--sub); cursor: pointer;
+  }
+  .segmented button.active { background: var(--card); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+
+  .swatches { display: flex; flex-wrap: wrap; gap: 12px; padding-bottom: 14px; }
+  .swatch-item { position: relative; width: 40px; }
+  .swatch-item button {
+    width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(0,0,0,.18); cursor: pointer; padding: 0;
+  }
+  .swatch-item button.selected { outline: 3px solid var(--ink); outline-offset: 2px; }
+  .swatch-item .num {
+    position: absolute; top: 19px; left: 0; right: 0; text-align: center;
+    font-family: "Karla"; font-weight: 700; font-size: 11px; color: var(--muted);
+  }
+  .swatch-add {
+    width: 40px; height: 40px; border-radius: 50%; background: var(--control-bg); border: none;
+    color: var(--ink); font-size: 22px; line-height: 1; cursor: pointer;
+  }
+
+  .slider-row { display: flex; align-items: center; gap: 10px; }
+  .slider-row .label { width: 64px; font-size: 13px; font-weight: 600; color: var(--muted); flex: none; }
+  .slider-row .track { flex: 1; height: 4px; border-radius: 2px; background: var(--track); overflow: hidden; }
+  .slider-row .track .fill { height: 100%; background: var(--accent); }
+  .slider-row .value { font-family: "JetBrains Mono"; font-size: 12px; width: 44px; text-align: right; flex: none; }
+
+  .hint { font-size: 13px; line-height: 1.5; color: var(--muted); border-top: 1px solid var(--control-bg); padding-top: 14px; }
+
+  @media (max-width: 760px) {
+    .hero-inner { padding-top: 32px; }
+  }
+
+  /* ---- Steps ---- */
+  section.steps { padding-top: 88px; }
+  .section-head { text-align: center; max-width: 600px; margin: 0 auto; }
+  .section-head h2 { font-size: clamp(28px, 4vw, 38px); font-weight: 800; letter-spacing: -.01em; }
+  .section-head p { color: var(--sub); margin-top: 12px; font-size: 17px; line-height: 1.6; }
+
+  .step-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+    gap: 20px; margin-top: 40px;
+  }
+  .step-card { background: var(--card); border: 1.5px solid var(--line); border-radius: 24px; padding: 28px; }
+  .step-card .num { font-family: "JetBrains Mono"; font-size: 13px; color: var(--accent-deep); }
+  .step-card h3 { font-family: "Bricolage Grotesque"; font-weight: 800; font-size: 22px; margin-top: 12px; }
+  .step-card p { color: var(--sub); font-size: 15.5px; line-height: 1.6; margin-top: 8px; }
+
+  /* ---- Feature cards ---- */
+  section.features { padding-top: 88px; }
+  .feature-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr));
+    gap: 20px;
+  }
+  .feature-card {
+    background: var(--card); border: 1.5px solid var(--line); border-radius: 26px; padding: 32px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .feature-card .kicker {
+    align-self: flex-start; padding: 6px 14px; border-radius: 999px;
+    background: var(--mint); color: var(--kicker-text); font-weight: 700; font-size: 13px;
+  }
+  .feature-card h3 { font-family: "Bricolage Grotesque"; font-weight: 800; font-size: 24px; line-height: 1.15; }
+  .feature-card p { color: var(--sub); font-size: 15.5px; line-height: 1.6; }
+  .feature-card.dark {
+    background: var(--panel-bg); color: var(--panel-text);
+  }
+  .feature-card.dark p { color: var(--panel-sub); }
+  .feature-card.dark .kicker { background: rgba(127,224,214,.14); color: var(--panel-accent); }
+
+  /* ---- Callout ---- */
+  section.callout { padding-top: 88px; }
+  .callout-panel {
+    border-radius: 26px; background: var(--mint); padding: clamp(28px, 5vw, 48px);
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+    gap: 32px; align-items: start;
+  }
+  .callout-panel h2 { font-size: clamp(26px, 3.6vw, 34px); line-height: 1.1; font-weight: 800; color: var(--callout-heading); }
+  .callout-panel .left p { color: var(--callout-body); font-size: 16px; line-height: 1.6; margin-top: 16px; }
+  .callout-card {
+    background: var(--card); border-radius: 20px; padding: 24px;
+    display: flex; gap: 14px; align-items: flex-start;
+  }
+  .callout-card .icon {
+    width: 28px; height: 28px; border-radius: 50%; background: var(--warn-bg); color: var(--warn-text);
+    font-weight: 800; display: flex; align-items: center; justify-content: center; flex: none; font-size: 15px;
+  }
+  .callout-card h3 { font-family: "Bricolage Grotesque"; font-weight: 800; font-size: 17px; }
+  .callout-card p { color: var(--sub); font-size: 15px; line-height: 1.55; margin-top: 4px; }
+
+  /* ---- Footer ---- */
+  footer {
+    max-width: 1120px; margin: 88px auto 0;
+    padding: 40px 24px 48px; text-align: center;
+    border-top: 1px solid var(--line); color: var(--sub); font-size: 15px; line-height: 1.7;
+  }
+  footer p + p { margin-top: 6px; }
+  footer a {
+    display: inline-block; padding: 8px 10px;
+    color: var(--accent-deep); text-decoration: none; font-weight: 600;
+  }
+  footer a:hover { color: var(--accent-hover); text-decoration: underline; }
+  footer .disclaimer { font-size: 13px; color: var(--faint); margin-top: 12px; }
+</style>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <div class="hero-inner wrap">
+      <div class="hero-copy">
+        <div class="brand-row">
+          <img src="assets/app-icon.png" alt="FilaTint app icon" width="128" height="128" fetchpriority="high">
+          <span>FilaTint</span>
+        </div>
+        <h1>Paint your prints.<br>Right on the glass.</h1>
+        <p class="tagline">Multi-color painting for Bambu Studio 3MF projects, on iPhone and iPad.</p>
+        <p class="sub">Open a project, brush filament colors onto any part with your finger or Apple Pencil, and export a 3MF that opens straight back in the slicer — every other byte untouched.</p>
+        <div class="badge-row">
+          <span class="pill-soon"><span class="dot"></span>Coming soon to the App Store</span>
+          <span class="pill-dark">iPhone &amp; iPad</span>
+        </div>
+      </div>
+
+      <div class="hero-demo">
+        <div class="palette-card">
+          <div class="palette-header">
+            <span class="part">Part 1 · Plate 1</span>
+            <span class="selected-name mono" id="selectedName">Teal PLA</span>
+          </div>
+
+          <div class="segmented" role="group" aria-label="Paint tool">
+            <button type="button" id="toolBrush" class="active" aria-pressed="true">Brush</button>
+            <button type="button" id="toolFill" aria-pressed="false">Smart Fill</button>
+          </div>
+
+          <div class="swatches" role="group" aria-label="Filament color">
+            <div class="swatch-item">
+              <button type="button" style="background:#EDEDE8" data-filament="1" data-name="White PLA" aria-label="Filament 1, White PLA"></button>
+              <span class="num">1</span>
+            </div>
+            <div class="swatch-item">
+              <button type="button" style="background:#1FA89A" data-filament="2" data-name="Teal PLA" class="selected" aria-label="Filament 2, Teal PLA" aria-pressed="true"></button>
+              <span class="num">2</span>
+            </div>
+            <div class="swatch-item">
+              <button type="button" style="background:#F2B43C" data-filament="3" data-name="Sunflower PLA" aria-label="Filament 3, Sunflower PLA"></button>
+              <span class="num">3</span>
+            </div>
+            <div class="swatch-item">
+              <button type="button" style="background:#E0507A" data-filament="4" data-name="Magenta PLA" aria-label="Filament 4, Magenta PLA"></button>
+              <span class="num">4</span>
+            </div>
+            <div class="swatch-item">
+              <button type="button" style="background:#3C4BD6" data-filament="5" data-name="Cobalt PLA" aria-label="Filament 5, Cobalt PLA"></button>
+              <span class="num">5</span>
+            </div>
+            <button type="button" class="swatch-add" aria-label="Add filament">+</button>
+          </div>
+
+          <div class="slider-row" id="radiusRow">
+            <span class="label">Radius</span>
+            <span class="track"><span class="fill" style="width:30%"></span></span>
+            <span class="value mono">12 mm</span>
+          </div>
+          <div class="slider-row">
+            <span class="label">Edges</span>
+            <span class="track"><span class="fill" style="width:33%"></span></span>
+            <span class="value mono">30°</span>
+          </div>
+
+          <p class="hint" id="toolHint">Drag to paint. Edge detection stops the stroke at sharp edges, so paint doesn't bleed around corners.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="steps wrap" aria-labelledby="steps-heading">
+    <div class="section-head">
+      <h2 id="steps-heading">Open. Paint. Export.</h2>
+      <p>The same multi-material paint workflow you know from the desktop slicer, sized for a touchscreen.</p>
+    </div>
+    <div class="step-grid">
+      <div class="step-card">
+        <span class="num">01</span>
+        <h3>Open any project</h3>
+        <p>Plates, objects and multi-part assemblies all load. Pick the exact part you want to paint from the object list.</p>
+      </div>
+      <div class="step-card">
+        <span class="num">02</span>
+        <h3>Paint with real filaments</h3>
+        <p>Brush or Smart Fill using the filaments your project declares, with undo per stroke. Each part keeps its edits as you switch.</p>
+      </div>
+      <div class="step-card">
+        <span class="num">03</span>
+        <h3>Export and slice</h3>
+        <p>Save a 3MF that Bambu Studio opens as its own project — settings, plates and metadata exactly as they were.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="features wrap" aria-label="Features">
+    <div class="feature-grid">
+      <div class="feature-card">
+        <span class="kicker">Brush</span>
+        <h3>Paint follows the brush, not the mesh.</h3>
+        <p>Triangles the brush only partly covers are split finely, so a small dab on a big flat face paints a clean disc. Fast strokes stay continuous.</p>
+      </div>
+      <div class="feature-card">
+        <span class="kicker">Smart Fill</span>
+        <h3>One tap, stopped at sharp edges.</h3>
+        <p>Flood a whole face in one tap. Edge detection outlines where fills and strokes will stop, updating live as you change the angle.</p>
+      </div>
+      <div class="feature-card">
+        <span class="kicker">Filaments</span>
+        <h3>Colors come from your project.</h3>
+        <p>The palette shows the filaments your file actually uses. Recolor one with a long-press, or add a new one based on an existing preset so it keeps the right material settings.</p>
+      </div>
+      <div class="feature-card dark">
+        <span class="kicker">Apple Pencil</span>
+        <h3>Made for iPad.</h3>
+        <p>Pressure changes brush size. Double-tap switches tools. Hover previews the brush or fill before you touch down, and your palm is ignored while drawing. Open several projects side by side in separate windows.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="callout wrap" aria-label="File integrity">
+    <div class="callout-panel">
+      <div class="left">
+        <h2>Your file stays your file.</h2>
+        <p>FilaTint never rebuilds your project. It changes only the paint on triangles you repainted, and writes everything else back byte-for-byte. Paint done in Bambu Studio loads here as painted, and survives a round-trip.</p>
+      </div>
+      <div class="callout-card">
+        <span class="icon">!</span>
+        <div>
+          <h3>Added a filament? Check purge volumes.</h3>
+          <p>New color pairs get conservative purge values. Before a multi-color print, open the project in Bambu Studio and recalculate flushing volumes.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p><strong style="color: var(--ink);">Support</strong></p>
+  <p>Questions or ideas? Email <a href="mailto:support@townsville.cc">support@townsville.cc</a></p>
+  <p><a href="privacy.html">Privacy Policy</a></p>
+  <p class="disclaimer">Bambu Studio is a trademark of its respective owner. FilaTint is an independent app and is not affiliated with Bambu Lab.</p>
+</footer>
+
+<script>
+  var brushBtn = document.getElementById('toolBrush');
+  var fillBtn = document.getElementById('toolFill');
+  var radiusRow = document.getElementById('radiusRow');
+  var hint = document.getElementById('toolHint');
+  var selectedName = document.getElementById('selectedName');
+  var swatchButtons = document.querySelectorAll('.swatch-item button');
+
+  var hints = {
+    brush: "Drag to paint. Edge detection stops the stroke at sharp edges, so paint doesn't bleed around corners.",
+    fill: "Tap to fill the connected patch of the same color, stopping where the surface bends more than 30°."
+  };
+
+  function setTool(tool) {
+    var isBrush = tool === 'brush';
+    brushBtn.classList.toggle('active', isBrush);
+    fillBtn.classList.toggle('active', !isBrush);
+    brushBtn.setAttribute('aria-pressed', String(isBrush));
+    fillBtn.setAttribute('aria-pressed', String(!isBrush));
+    radiusRow.style.display = isBrush ? '' : 'none';
+    hint.textContent = hints[tool];
+  }
+
+  brushBtn.addEventListener('click', function () { setTool('brush'); });
+  fillBtn.addEventListener('click', function () { setTool('fill'); });
+
+  swatchButtons.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      swatchButtons.forEach(function (b) {
+        b.classList.remove('selected');
+        b.removeAttribute('aria-pressed');
+      });
+      btn.classList.add('selected');
+      btn.setAttribute('aria-pressed', 'true');
+      selectedName.textContent = btn.getAttribute('data-name');
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+/* FilaTint — shared foundation.
+   Tokens, reset, base type, and focus live here so a color fix lands on every page at once.
+   Page-specific layout stays in each page's own <style> block. */
+
+:root {
+  --bg: #f4f6f5;
+  --card: #ffffff;
+  --card-alt: #f7faf9;
+  --mint: #dcf3ef;
+  --control-bg: #e3e9e8;
+
+  --panel-bg: #0f2426;
+  --panel-text: #eef4f3;
+  --panel-sub: #b4c6c4;
+  --panel-accent: #7fe0d6;
+
+  --ink: #16201f;
+  --sub: #4d5c5a;
+  --muted: #5c6b69;
+  --faint: #6b7978;
+
+  --accent: #12a394;
+  --accent-deep: #0b6e69;
+  --accent-hover: #084f4b;
+  --kicker-text: #0b5e59;
+  --callout-heading: #0b3d3a;
+  --callout-body: #23413f;
+
+  --warn-bg: #f2b43c;
+  --warn-text: #3a2800;
+
+  --line: #dfe6e5;
+  --track: #d5dddc;
+
+  --focus-ring: var(--accent-deep);
+
+  --space-xs: .5rem; --space-sm: 1rem; --space-md: 1.5rem;
+  --space-lg: 2.5rem; --space-xl: 4rem; --space-2xl: 5.5rem;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { overflow-x: clip; }
+
+body {
+  font-family: "Karla", system-ui, sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+}
+
+h1, h2, h3 {
+  font-family: "Bricolage Grotesque", system-ui, sans-serif;
+  font-style: normal;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+p { text-wrap: pretty; }
+
+a { color: inherit; }
+
+:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
