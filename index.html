@@ -95,6 +95,14 @@
   .section-head h2 { font-size: clamp(28px, 4vw, 38px); font-weight: 800; letter-spacing: -.01em; }
   .section-head p { color: var(--sub); margin-top: 12px; font-size: 17px; line-height: 1.6; }
 
+  /* ---- Promo video ---- */
+  section.promo { padding-top: 88px; }
+  .promo-frame {
+    margin: 40px auto 0; max-width: 880px; border-radius: 26px; overflow: hidden;
+    background: var(--panel-bg); border: 1.5px solid var(--line); box-shadow: 0 24px 60px rgba(15,36,38,.22);
+  }
+  .promo-frame video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; }
+
   .step-grid {
     display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
     gap: 20px; margin-top: 40px;
@@ -233,6 +241,19 @@
       </div>
     </div>
   </div>
+
+  <section class="promo wrap" aria-labelledby="promo-heading">
+    <div class="section-head">
+      <h2 id="promo-heading">See it in 30 seconds</h2>
+      <p>A quick look at painting a 3MF with FilaTint.</p>
+    </div>
+    <div class="promo-frame">
+      <video controls playsinline preload="none" poster="assets/promo-poster.webp" width="1920" height="1080" aria-label="FilaTint promo video: brush, Smart Fill and height painting on a 3MF model, then export back to Bambu Studio">
+        <source src="assets/promo.mp4" type="video/mp4">
+        <a href="assets/promo.mp4">Watch the FilaTint promo video</a>
+      </video>
+    </div>
+  </section>
 
   <section class="steps wrap" aria-labelledby="steps-heading">
     <div class="section-head">
